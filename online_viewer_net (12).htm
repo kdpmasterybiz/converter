@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Markdown to HTML Converter</title>
+    <style>
+        /* Basic Styling for readability */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f4f4f9;
+        }
+        h1 { 
+            color: #333; 
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        label { 
+            display: block; 
+            margin-top: 15px; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+            color: #555;
+        }
+        textarea { 
+            width: 100%; 
+            min-height: 180px; 
+            margin-bottom: 10px; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Markdown-Style Converter</h1>
+
+    <label for="txtInput">Text Input (Use formatting: `#` for Heading, `*` or `-` for List, `**Bold**`, `*Italics*`):</label>
+    <textarea id="txtInput" placeholder="
+# Welcome!
+
+This is the first paragraph.
+A single line break means a <br>.
+
+**Here is bold text**, and *here is italics*.
+
+## Features
+
+* List item one
+* List item two
+
+A final thought."></textarea>
+
+    <button onclick="convertToHtml()">Convert to HTML 🚀</button>
+
+    <label for="htmlOutput">HTML Output:</label>
+    <textarea id="htmlOutput" readonly placeholder="Converted HTML will appear here..."></textarea>
+
+    <script>
+        function convertToHtml() {
+            const rawText = document.getElementById('txtInput').value;
+            
+            // 1. Escape basic HTML characters first
+            let htmlContent = rawText
+                .replace(/&/g, "&amp;") // Must be done first!
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+            // Split the content by double newlines to treat chunks as potential paragraphs/blocks
+            const blocks = htmlContent.split(/\n{2,}/); 
+            let output = [];
+            let inList = false;
+
+            for (let block of blocks) {
+                if (!block.trim()) continue; // Skip empty blocks
+
+                // Split the block into lines for processing headers and lists
+                let lines = block.split('\n');
+
+                // Check the first line for block-level elements (Headers, Lists)
+                let firstLine = lines[0].trim();
+                let blockContent = '';
+
+                // --- HEADER CHECK ---
+                if (firstLine.startsWith('###')) {
+                    blockContent = `<h3>${firstLine.substring(3).trim()}</h3>`;
+                } else if (firstLine.startsWith('##')) {
+                    blockContent = `<h2>${firstLine.substring(2).trim()}</h2>`;
+                } else if (firstLine.startsWith('#')) {
+                    blockContent = `<h1>${firstLine.substring(1).trim()}</h1>`;
+                } 
+                
+                // --- LIST CHECK ---
+                else if (firstLine.startsWith('* ') || firstLine.startsWith('- ')) {
+                    // Start the list
+                    if (!inList) {
+                        output.push('<ul>');
+                        inList = true;
+                    }
+
+                    // Process all lines in the block as list items
+                    for(const line of lines) {
+                        if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+                            blockContent += `<li>${line.substring(2).trim()}</li>`;
+                        } else {
+                            // If a list item continues on the next line without a new bullet point
+                            blockContent += line.trim();
+                        }
+                    }
+                    
+                    // The block is done, close the list if the next block is NOT a list
+                    // (This simplified logic closes the list at the end of the block. A better parser would check the next block.)
+                    // For this simple version, we'll rely on the line-by-line check below.
+                    
+                } 
+                
+                // --- PARAGRAPH CHECK ---
+                else {
+                    // It's a paragraph block. Convert single newlines to <br>
+                    blockContent = `<p>${block.replace(/\n/g, '<br>')}</p>`;
+                    
+                    // If we were previously in a list, close it now
+                    if (inList) {
+                        output.push('</ul>');
+                        inList = false;
+                    }
+                }
+
+                // --- TEXT EMPHASIS (Apply to all block types) ---
+                // **Bold** -> <b>Bold</b>
+                blockContent = blockContent.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                
+                // *Italics* -> <i>Italics</i>
+                blockContent = blockContent.replace(/\*(.*?)\*/g, '<i>$1</i>');
+
+                output.push(blockContent);
+            }
+            
+            // Final check to close any open list at the end of the document
+            if (inList) {
+                output.push('</ul>');
+            }
+
+            // Output the final HTML
+            document.getElementById('htmlOutput').value = output.join('\n');
+        }
+    </script>
+</body>
+</html>
