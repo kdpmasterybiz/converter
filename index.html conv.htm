@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Text to HTML Converter</title>
+    <style>
+        /* Optional basic styling */
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        textarea { width: 100%; height: 150px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Text to HTML Converter</h1>
+
+    <label for="txtInput">Text Input:</label>
+    <textarea id="txtInput" placeholder="Paste your text here..."></textarea>
+
+    <button onclick="convertToHtml()">Convert to HTML 🔄</button>
+
+    <label for="htmlOutput">HTML Output:</label>
+    <textarea id="htmlOutput" readonly placeholder="Converted HTML will appear here..."></textarea>
+
+    <script src="converter.js"></script>
+</body>
+</html>
